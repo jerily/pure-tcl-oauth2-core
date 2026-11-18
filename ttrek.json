@@ -1,0 +1,16 @@
+{
+  "name": "pure-tcl-oauth2-core",
+  "version": "0.1.0",
+  "license": "MIT",
+  "dependencies": {
+    "tcl": ">=9.1.0,<10.0.0",
+    "tjson": "^1.0.28",
+    "thashlib": "^0.1.1",
+    "tink-tcl": "^20240704.0.3"
+  },
+  "devDependencies": {
+    "tpersist": "^0.1.5"
+  },
+  "description": "Shared OAuth2 and OpenID Connect primitives for Tcl using tjson and Tink.",
+  "url": "https://github.com/jerily/pure-tcl-oauth2-core"
+}
