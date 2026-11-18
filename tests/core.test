@@ -1,0 +1,53 @@
+package require tcltest
+package require pure-tcl-oauth2-core
+namespace import ::tcltest::test
+test pkce-vector {RFC 7636 known answer} -body {
+    ::oauth2::core::pkce_challenge dBjftJeZ4CVP-mB92K27uhbUJU1p1r_wW1gFWFOEjXk
+} -result E9Melhoa2OwvFrEMTJguCHaoeK1t8URWbuGJSstw-cM
+test form-roundtrip {UTF-8, separators and empty values roundtrip} -body {
+    ::oauth2::core::form_decode [::oauth2::core::form_encode {a {a+b&c=d} b {} c Καλημέρα}]
+} -result {a a+b&c=d b {} c Καλημέρα}
+test form-invalid {duplicates and invalid escapes are rejected} -body {
+    lmap form {a=1&a=2 a=%GG a=%00 a=%ff} {catch {::oauth2::core::form_decode $form}}
+} -result {1 1 1 1}
+test local-return {encoded authorities cannot turn post-login redirects external} -body {
+    list [::oauth2::core::return_path /account?tab=profile] [lmap path {//evil.example /%2fevil.example /%5cevil.example /%252fevil.example https://evil.example} {
+        catch {::oauth2::core::return_path $path}
+    }]
+} -result {/account?tab=profile {1 1 1 1 1}}
+test jwt-signature {real RS256 signatures and typed claims} -setup {
+    set key [::tink::register_keyset [::tink::jwt::create_private_keyset RS256_2048_F4]]
+    set public [::tink::jwt::import_jwks [::tink::jwt::export_jwks $key]]
+    set claims [dict create iss {S issuer} sub {S subject} aud {S audience} iat {N 1000} exp {N 1300} nonce {S nonce} verified {BOOL 1}]
+    set token [::tink::jwt::sign $key [list M $claims]]
+} -body {
+    set valid [::oauth2::core::jwt_verify $public $token -issuer issuer -audience audience -nonce nonce -now 1100]
+    set results [list [dict get $valid verified]]
+    foreach args {{-audience wrong} {-issuer wrong} {-nonce wrong} {-now 1400} {-algorithms HS256}} {
+        lappend results [catch {::oauth2::core::jwt_verify $public $token -issuer issuer -audience audience -now 1100 {*}$args}]
+    }
+    set unsigned [::oauth2::core::b64encode [encoding convertto utf-8 {{"alg":"none"}}]].[lindex [split $token .] 1].
+    lappend results [catch {::oauth2::core::jwt_verify $public $unsigned -issuer issuer -audience audience -now 1100}]
+    set results
+} -cleanup {::tink::unregister_keyset $key; ::tink::unregister_keyset $public} -result {{BOOL 1} 1 1 1 1 1 1}
+test memory-rollback {a failed transition restores consumed records} -body {
+    set store [::oauth2::store::memory]
+    $store put test id {state new} 2000
+    proc transition {store} {$store delete test id [$store get test id 1000]; error failure}
+    catch {$store atomic [list transition $store]}
+    set result [dict get [$store get test id 1000] data]
+    $store destroy
+    set result
+} -result {state new}
+test sql-rollback {SQL transitions survive reconnects and roll back consumption} -body {
+    package require tpersist
+    set db [::tpersist::db_connect -database :memory: -autobegin 0]
+    ::oauth2::store::initdb $db
+    set store [::oauth2::store::sql $db tenant]
+    $store put test id {state new} 2000
+    catch {$store atomic [list transition $store]}
+    set result [dict get [$store get test id 1000] data]
+    $store destroy
+    ::tpersist::db_disconnect $db
+    set result
+} -result {state new}
