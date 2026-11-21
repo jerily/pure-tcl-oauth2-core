@@ -1,6 +1,6 @@
 # SPDX-License-Identifier: MIT
 package require Tcl 9.1
-package require tjson 1.0.28
+package require tjson 1.0.30
 package require thashlib 0.1.1
 package require tink 20240704.0.3
 namespace eval ::oauth2::core {}
@@ -17,7 +17,7 @@ proc ::oauth2::core::options {defaults args} {
     return $defaults
 }
 proc ::oauth2::core::json {text} {
-    if {[catch {::tjson::json_to_typed_strict $text} result]} {fail invalid_response "Invalid JSON document"}
+    if {[catch {::tjson::json_to_typed -maxbytes 1048576 -maxdepth 32 $text} result]} {fail invalid_response "Invalid JSON document"}
     if {[lindex $result 0] ne "M"} {fail invalid_response "Expected a JSON object"}
     lindex $result 1
 }
@@ -224,4 +224,4 @@ proc ::oauth2::core::jwt_verify {key compact args} {
     return $fields
 }
 source [file join [file dirname [info script]] store.tcl]
-package provide pure-tcl-oauth2-core 0.1.0
+package provide pure-tcl-oauth2-core 0.1.1

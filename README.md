@@ -4,12 +4,12 @@ Shared OAuth2/OIDC primitives for Tcl 9.1. Protocol code is Tcl; cryptography is
 provided by native packages. Install this package independently, or through the
 client/server packages. JSON is parsed and generated with `tjson`.
 
-Dependencies: `tjson >=1.0.28`, `thashlib >=0.1.1`, `tink >=20240704.0.3`
+Dependencies: `tjson >=1.0.30`, `thashlib >=0.1.1`, `tink >=20240704.0.3`
 (the distribution is named `tink-tcl`). The optional SQL backend needs
 `tpersist >=0.1.5` and its SQLite or PostgreSQL driver. No JOSE extension is needed.
 
 ```tcl
-package require pure-tcl-oauth2-core 0.1.0
+package require pure-tcl-oauth2-core 0.1.1
 set pair [::oauth2::core::pkce]
 # dict: code_verifier, code_challenge, code_challenge_method (S256)
 set bytes [::oauth2::core::b64decode [::oauth2::core::b64encode abc]]
@@ -22,7 +22,7 @@ JSON object. `encode_json typedFields` serializes it. Values use tjson notation:
 `{S text}`, `{N 42}`, `{BOOL 1}`, `{N null}`, `{L typedValues}`, `{M typedFields}`.
 `claim_string fields name ?default?` and `value fields name type ?default?`
 enforce types. Duplicate members, malformed UTF-8, NUL, non-finite numbers and
-excessive nesting/size are rejected. Boolean `true` is never accepted as a string.
+documents exceeding 32 levels of nesting or 1 MiB are rejected. Boolean `true` is never accepted as a string.
 
 Other commands in `::oauth2::core`:
 
