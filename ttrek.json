@@ -1,10 +1,10 @@
 {
   "name": "pure-tcl-oauth2-core",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "license": "MIT",
   "dependencies": {
     "tcl": ">=9.1.0,<10.0.0",
-    "tjson": "^1.0.28",
+    "tjson": "^1.0.30",
     "thashlib": "^0.1.1",
     "tink-tcl": "^20240704.0.3"
   },

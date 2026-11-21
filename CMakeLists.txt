@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.16)
-project(pure-tcl-oauth2-core VERSION 0.1.0 LANGUAGES NONE)
+project(pure-tcl-oauth2-core VERSION 0.1.1 LANGUAGES NONE)
 install(FILES pkgIndex.tcl README.md LICENSE DESTINATION lib/pure-tcl-oauth2-core${PROJECT_VERSION})
 install(DIRECTORY library DESTINATION lib/pure-tcl-oauth2-core${PROJECT_VERSION})
 if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/sql")

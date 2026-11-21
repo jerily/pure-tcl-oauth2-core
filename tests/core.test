@@ -1,6 +1,13 @@
 package require tcltest
 package require pure-tcl-oauth2-core
 namespace import ::tcltest::test
+test json-limits {protocol objects are bounded by byte length and container depth} -body {
+    set object [format {{"x":"%s"}} [string repeat a 1048568]]
+    set deep [format {{"x":%s0%s}} [string repeat {[} 31] [string repeat {]} 31]]
+    set deeper [string map {0 {[0]}} $deep]
+    list [catch {::oauth2::core::json $object}] [catch {::oauth2::core::json "$object "}] \
+        [catch {::oauth2::core::json $deep}] [catch {::oauth2::core::json $deeper}]
+} -result {0 1 0 1}
 test pkce-vector {RFC 7636 known answer} -body {
     ::oauth2::core::pkce_challenge dBjftJeZ4CVP-mB92K27uhbUJU1p1r_wW1gFWFOEjXk
 } -result E9Melhoa2OwvFrEMTJguCHaoeK1t8URWbuGJSstw-cM
